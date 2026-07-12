@@ -1,0 +1,1889 @@
+from pathlib import Path
+import zipfile
+import textwrap
+
+out_dir = Path("/mnt/data/landing_malabsorcion")
+out_dir.mkdir(parents=True, exist_ok=True)
+
+html = r"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Landing page divulgativa sobre el algoritmo práctico de manejo nutricional en pacientes con malabsorción."
+  />
+  <title>Malabsorción: del síntoma a la decisión nutricional</title>
+  <style>
+    :root {
+      --ink: #0b2d36;
+      --ink-soft: #35545c;
+      --teal: #083b4c;
+      --teal-2: #0c5c70;
+      --green: #00a37a;
+      --green-soft: #dff7ef;
+      --magenta: #e10075;
+      --magenta-soft: #fde3f0;
+      --blue: #2477c8;
+      --amber: #f5a623;
+      --paper: #fbfcfa;
+      --surface: #ffffff;
+      --line: #dbe6e3;
+      --muted: #6c7c80;
+      --shadow: 0 22px 60px rgba(8, 59, 76, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --content: min(1180px, calc(100% - 32px));
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 5% 5%, rgba(0, 163, 122, 0.11), transparent 26rem),
+        radial-gradient(circle at 94% 20%, rgba(225, 0, 117, 0.08), transparent 24rem),
+        var(--paper);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+
+    button, input, select { font: inherit; }
+
+    a { color: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(219, 230, 227, 0.86);
+      background: rgba(251, 252, 250, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav {
+      width: var(--content);
+      min-height: 72px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: #fff;
+      border-radius: 13px;
+      background: linear-gradient(145deg, var(--teal), var(--green));
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(8, 59, 76, 0.2);
+    }
+
+    .brand-copy strong {
+      display: block;
+      line-height: 1.15;
+    }
+
+    .brand-copy span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a,
+    .nav-button {
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: transparent;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 700;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .nav-links a:hover,
+    .nav-button:hover {
+      color: #fff;
+      background: var(--teal);
+      transform: translateY(-1px);
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--green), var(--magenta));
+    }
+
+    .hero {
+      width: var(--content);
+      margin: 52px auto 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
+      gap: 34px;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .hero-visual {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: clamp(28px, 5vw, 58px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      color: var(--magenta);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 28px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--magenta);
+      content: "";
+    }
+
+    h1 {
+      max-width: 880px;
+      margin: 0;
+      font-size: clamp(2.15rem, 6vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .hero-lead {
+      max-width: 760px;
+      margin: 24px 0 0;
+      color: var(--ink-soft);
+      font-size: clamp(1.02rem, 1.6vw, 1.24rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 17px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+    }
+
+    .button:hover { transform: translateY(-2px); }
+
+    .button-primary {
+      color: #fff;
+      background: var(--teal);
+    }
+
+    .button-primary:hover { background: var(--teal-2); }
+
+    .button-secondary {
+      color: var(--teal);
+      border-color: var(--teal);
+      background: #fff;
+    }
+
+    .button-secondary:hover { background: #eef8f6; }
+
+    .hero-note {
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      background:
+        linear-gradient(150deg, rgba(8, 59, 76, 0.98), rgba(12, 92, 112, 0.95)),
+        var(--teal);
+    }
+
+    .hero-visual::before {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      right: -130px;
+      top: -120px;
+      border: 70px solid rgba(255, 255, 255, 0.06);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .visual-title {
+      position: relative;
+      margin: 0 0 24px;
+      color: #fff;
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .path {
+      position: relative;
+      display: grid;
+      gap: 14px;
+    }
+
+    .path-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .path-step:not(:last-child)::after {
+      position: absolute;
+      left: 41px;
+      bottom: -16px;
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(var(--green), var(--magenta));
+      content: "";
+    }
+
+    .path-number {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--teal);
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .path-step:nth-child(2) .path-number { color: var(--magenta); }
+    .path-step:nth-child(3) .path-number { color: var(--green); }
+
+    .path-step strong {
+      display: block;
+      font-size: 1.02rem;
+    }
+
+    .path-step span {
+      display: block;
+      margin-top: 2px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.82rem;
+    }
+
+    .keyline {
+      width: var(--content);
+      margin: 30px auto 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(8, 59, 76, 0.08);
+    }
+
+    .key-stat {
+      min-height: 142px;
+      padding: 24px;
+      border-right: 1px solid var(--line);
+    }
+
+    .key-stat:last-child { border-right: 0; }
+
+    .key-stat strong {
+      display: block;
+      color: var(--teal);
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .key-stat:nth-child(2) strong { color: var(--magenta); }
+    .key-stat:nth-child(3) strong { color: var(--green); }
+    .key-stat:nth-child(4) strong { color: var(--blue); }
+
+    .key-stat span {
+      display: block;
+      margin-top: 9px;
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
+    main section {
+      width: var(--content);
+      margin: 92px auto 0;
+      scroll-margin-top: 90px;
+    }
+
+    .section-heading {
+      max-width: 780px;
+      margin-bottom: 30px;
+    }
+
+    .section-heading .kicker {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 3.35rem);
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+    }
+
+    .section-heading p {
+      margin: 15px 0 0;
+      color: var(--ink-soft);
+      font-size: 1.02rem;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+    }
+
+    .story-card,
+    .chart-card,
+    .method-card,
+    .decision-card,
+    .citation-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(8, 59, 76, 0.07);
+    }
+
+    .story-card {
+      padding: clamp(24px, 4vw, 38px);
+    }
+
+    .story-card h3 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .story-card p {
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+    }
+
+    .disease-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 24px;
+    }
+
+    .pill {
+      padding: 8px 11px;
+      border: 1px solid #cfe3dd;
+      border-radius: 999px;
+      color: var(--teal);
+      background: #f3fbf8;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .mini-warning {
+      margin-top: 24px;
+      padding: 15px 16px;
+      border-left: 4px solid var(--magenta);
+      border-radius: 0 11px 11px 0;
+      background: var(--magenta-soft);
+      color: #6c1746;
+      font-size: 0.9rem;
+    }
+
+    .chart-card {
+      padding: clamp(22px, 3vw, 30px);
+    }
+
+    .chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .chart-toolbar h3 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .segment {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: #edf3f1;
+    }
+
+    .segment button {
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .segment button[aria-selected="true"] {
+      color: #fff;
+      background: var(--teal);
+    }
+
+    .bars {
+      display: grid;
+      gap: 15px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1fr) minmax(180px, 2.1fr) 58px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bar-label {
+      color: var(--ink-soft);
+      font-size: 0.84rem;
+    }
+
+    .bar-track {
+      height: 13px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e9efed;
+    }
+
+    .bar-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal-2), var(--green));
+      transition: width 650ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .bar-value {
+      color: var(--teal);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .chart-foot {
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .algorithm-shell {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line);
+      background: #f0f6f4;
+    }
+
+    .tab {
+      min-height: 72px;
+      padding: 14px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 800;
+      transition: background 150ms ease, color 150ms ease;
+    }
+
+    .tab:last-child { border-right: 0; }
+
+    .tab span {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tab[aria-selected="true"] {
+      color: #fff;
+      background: var(--teal);
+    }
+
+    .tab[aria-selected="true"] span { color: rgba(255,255,255,.72); }
+
+    .tab-panel {
+      display: none;
+      padding: clamp(24px, 5vw, 48px);
+    }
+
+    .tab-panel.active { display: block; }
+
+    .algorithm-grid {
+      display: grid;
+      grid-template-columns: 0.82fr 1.18fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .stage-intro {
+      position: sticky;
+      top: 106px;
+      padding: 26px;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(150deg, var(--teal), var(--teal-2));
+    }
+
+    .stage-intro .stage-no {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 16px;
+      border-radius: 50%;
+      color: var(--teal);
+      background: #fff;
+      font-weight: 900;
+    }
+
+    .stage-intro h3 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    .stage-intro p {
+      margin: 12px 0 0;
+      color: rgba(255,255,255,.82);
+    }
+
+    .stage-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .logic-card {
+      position: relative;
+      padding: 19px 20px 19px 58px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .logic-card::before {
+      position: absolute;
+      left: 18px;
+      top: 19px;
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--green);
+      content: attr(data-number);
+      font-size: 0.75rem;
+      font-weight: 900;
+    }
+
+    .logic-card strong {
+      display: block;
+      color: var(--teal);
+    }
+
+    .logic-card p {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
+    .logic-card.warning::before { background: var(--magenta); }
+
+    .decision-layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 24px;
+    }
+
+    .decision-card {
+      padding: clamp(23px, 4vw, 34px);
+    }
+
+    .decision-card h3 {
+      margin: 0 0 5px;
+      font-size: 1.28rem;
+    }
+
+    .decision-card > p {
+      margin: 0 0 22px;
+      color: var(--ink-soft);
+      font-size: 0.91rem;
+    }
+
+    .field {
+      margin-top: 18px;
+    }
+
+    .field > span {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--teal);
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .choice input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .choice label {
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink-soft);
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .choice input:checked + label {
+      color: #fff;
+      border-color: var(--teal);
+      background: var(--teal);
+    }
+
+    .result-card {
+      position: relative;
+      min-height: 100%;
+      overflow: hidden;
+      padding: clamp(24px, 4vw, 36px);
+      border-radius: var(--radius-lg);
+      color: #fff;
+      background: linear-gradient(145deg, var(--teal), #0d7085);
+      box-shadow: var(--shadow);
+    }
+
+    .result-card::after {
+      position: absolute;
+      right: -80px;
+      bottom: -110px;
+      width: 260px;
+      height: 260px;
+      border: 46px solid rgba(255,255,255,.07);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .result-label {
+      position: relative;
+      margin: 0;
+      color: rgba(255,255,255,.72);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .result-card h3 {
+      position: relative;
+      max-width: 520px;
+      margin: 11px 0 0;
+      font-size: clamp(1.55rem, 3.2vw, 2.45rem);
+      line-height: 1.08;
+    }
+
+    .result-card p {
+      position: relative;
+      max-width: 560px;
+      color: rgba(255,255,255,.84);
+    }
+
+    .result-steps {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .result-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 13px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      font-size: 0.86rem;
+    }
+
+    .result-step b {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      color: var(--teal);
+      background: #fff;
+      font-size: 0.73rem;
+    }
+
+    .methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .method-card {
+      padding: 25px;
+    }
+
+    .method-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      background: var(--teal);
+      font-weight: 900;
+    }
+
+    .method-card:nth-child(2) .method-icon { background: var(--magenta); }
+    .method-card:nth-child(3) .method-icon { background: var(--green); }
+
+    .method-card h3 {
+      margin: 18px 0 0;
+      font-size: 1.08rem;
+    }
+
+    .method-card p {
+      margin: 9px 0 0;
+      color: var(--ink-soft);
+      font-size: 0.88rem;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+    }
+
+    .implication-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .implication {
+      padding: 20px;
+      border-left: 5px solid var(--green);
+      border-radius: 0 15px 15px 0;
+      background: #f1faf7;
+    }
+
+    .implication:nth-child(2) {
+      border-color: var(--magenta);
+      background: #fff2f8;
+    }
+
+    .implication:nth-child(3) {
+      border-color: var(--blue);
+      background: #f0f6fd;
+    }
+
+    .implication strong {
+      display: block;
+      color: var(--teal);
+    }
+
+    .implication p {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
+    .accordion {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: #fff;
+      box-shadow: 0 14px 34px rgba(8, 59, 76, 0.07);
+    }
+
+    .accordion-item + .accordion-item {
+      border-top: 1px solid var(--line);
+    }
+
+    .accordion-button {
+      width: 100%;
+      min-height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 17px 20px;
+      border: 0;
+      color: var(--teal);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .accordion-button span:last-child {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--teal);
+      transition: transform 150ms ease;
+    }
+
+    .accordion-button[aria-expanded="true"] span:last-child {
+      transform: rotate(45deg);
+    }
+
+    .accordion-panel {
+      display: none;
+      padding: 0 20px 20px;
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+    }
+
+    .accordion-panel.open { display: block; }
+
+    .citation-card {
+      padding: clamp(24px, 4vw, 38px);
+      background: linear-gradient(160deg, #fff, #f0faf7);
+    }
+
+    .citation-card h3 {
+      margin: 0;
+      color: var(--teal);
+    }
+
+    .citation-box {
+      margin-top: 17px;
+      padding: 18px;
+      border: 1px solid #cfe3dd;
+      border-radius: 14px;
+      background: #fff;
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    .citation-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .copy-status {
+      min-height: 20px;
+      margin: 10px 0 0;
+      color: var(--green);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .closing {
+      width: var(--content);
+      margin: 92px auto 28px;
+      padding: clamp(28px, 5vw, 52px);
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      color: #fff;
+      background:
+        radial-gradient(circle at 92% 15%, rgba(255,255,255,.1), transparent 18rem),
+        linear-gradient(130deg, var(--teal), var(--teal-2));
+      box-shadow: var(--shadow);
+    }
+
+    .closing h2 {
+      max-width: 830px;
+    }
+
+    .closing p {
+      max-width: 800px;
+      margin: 16px 0 0;
+      color: rgba(255,255,255,.82);
+    }
+
+    footer {
+      width: var(--content);
+      margin: 0 auto;
+      padding: 26px 0 40px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0,0,0,0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .problem-grid,
+      .algorithm-grid,
+      .decision-layout,
+      .evidence-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .keyline { grid-template-columns: repeat(2, 1fr); }
+
+      .key-stat:nth-child(2) { border-right: 0; }
+      .key-stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+
+      .stage-intro { position: static; }
+
+      .methods { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .nav-links a { display: none; }
+
+      .hero {
+        margin-top: 24px;
+      }
+
+      .hero-copy,
+      .hero-visual {
+        border-radius: 20px;
+      }
+
+      .keyline { grid-template-columns: 1fr; }
+
+      .key-stat {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .key-stat:last-child { border-bottom: 0; }
+
+      main section { margin-top: 68px; }
+
+      .tabs { grid-template-columns: 1fr; }
+
+      .tab {
+        min-height: 58px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tab:last-child { border-bottom: 0; }
+
+      .choices { grid-template-columns: 1fr; }
+
+      .bar-row {
+        grid-template-columns: 1fr 48px;
+      }
+
+      .bar-label { grid-column: 1 / -1; }
+
+      .chart-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .segment { align-self: flex-start; }
+    }
+
+    @media (max-width: 460px) {
+      :root { --content: min(100% - 20px, 1180px); }
+
+      .brand-copy span { display: none; }
+
+      h1 { font-size: 2.55rem; }
+
+      .hero-actions,
+      .citation-actions { flex-direction: column; }
+
+      .button { width: 100%; }
+
+      .segment {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
+      }
+    }
+
+    @media print {
+      .topbar,
+      .hero-actions,
+      .segment,
+      .decision-card,
+      .citation-actions,
+      .copy-status {
+        display: none !important;
+      }
+
+      body { background: #fff; }
+
+      .hero,
+      .problem-grid,
+      .algorithm-grid,
+      .evidence-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy,
+      .hero-visual,
+      .story-card,
+      .chart-card,
+      .algorithm-shell,
+      .method-card,
+      .citation-card {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+
+      .tab-panel { display: block !important; }
+
+      main section { margin-top: 35px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Navegación principal">
+      <a class="brand" href="#inicio">
+        <span class="brand-mark" aria-hidden="true">MN</span>
+        <span class="brand-copy">
+          <strong>Malabsorción &amp; Nutrición</strong>
+          <span>Artículo explicado visualmente</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="#problema">Problema</a>
+        <a href="#algoritmo">Algoritmo</a>
+        <a href="#evidencia">Evidencia</a>
+        <button class="nav-button" id="printButton" type="button">Guardar PDF</button>
+      </div>
+    </nav>
+    <div class="progress" id="progressBar" aria-hidden="true"></div>
+  </header>
+
+  <section class="hero" id="inicio">
+    <article class="hero-copy">
+      <p class="eyebrow">Nutrición clínica · 2026</p>
+      <h1>Del síntoma a una decisión nutricional clara</h1>
+      <p class="hero-lead">
+        Un panel de 173 especialistas transformó el consenso clínico en un algoritmo práctico
+        para detectar malnutrición, diagnosticarla con criterios GLIM y elegir entre fórmulas
+        poliméricas u oligoméricas según tolerancia y gravedad.
+      </p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#algoritmo">Explorar el algoritmo</a>
+        <a class="button button-secondary" href="#cita">Ver cita APA</a>
+      </div>
+      <p class="hero-note">
+        Síntesis divulgativa del artículo de Sidahi Serrano y colaboradores. No sustituye
+        la valoración clínica individual ni las guías de práctica clínica.
+      </p>
+    </article>
+
+    <aside class="hero-visual" aria-label="Resumen gráfico del algoritmo">
+      <p class="visual-title">Resumen gráfico</p>
+      <div class="path">
+        <div class="path-step">
+          <span class="path-number">1</span>
+          <div>
+            <strong>Cribado</strong>
+            <span>Historia clínica + síntomas persistentes</span>
+          </div>
+        </div>
+        <div class="path-step">
+          <span class="path-number">2</span>
+          <div>
+            <strong>Diagnóstico GLIM</strong>
+            <span>≥1 criterio fenotípico + ≥1 etiológico</span>
+          </div>
+        </div>
+        <div class="path-step">
+          <span class="path-number">3</span>
+          <div>
+            <strong>Intervención</strong>
+            <span>Elegir fórmula y reevaluar la tolerancia</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="keyline" aria-label="Datos clave del estudio">
+    <article class="key-stat">
+      <strong>173</strong>
+      <span>médicos con experiencia clínica participaron en la validación práctica.</span>
+    </article>
+    <article class="key-stat">
+      <strong>97,7%</strong>
+      <span>apoyó el uso de los criterios GLIM para diagnosticar malnutrición.</span>
+    </article>
+    <article class="key-stat">
+      <strong>&gt;3 sem</strong>
+      <span>duración orientativa de síntomas moderados para activar el cribado.</span>
+    </article>
+    <article class="key-stat">
+      <strong>3–5 días</strong>
+      <span>momento recomendado para valorar precozmente la tolerancia.</span>
+    </article>
+  </section>
+
+  <main>
+    <section id="problema">
+      <header class="section-heading">
+        <p class="kicker">01 · El problema clínico</p>
+        <h2>La malabsorción no es un diagnóstico aislado: es una vía rápida hacia la malnutrición</h2>
+        <p>
+          Cirugía digestiva, enfermedad inflamatoria intestinal, insuficiencia pancreática,
+          cáncer y otros trastornos pueden reducir la absorción, limitar la ingesta y deteriorar
+          el estado nutricional. El reto era convertir señales heterogéneas en decisiones reproducibles.
+        </p>
+      </header>
+
+      <div class="problem-grid">
+        <article class="story-card">
+          <h3>¿En quién pensar?</h3>
+          <p>
+            El algoritmo propone iniciar la vigilancia en pacientes con antecedentes o enfermedades
+            asociadas a malabsorción, especialmente cuando aparecen síntomas gastrointestinales
+            persistentes de intensidad al menos moderada.
+          </p>
+          <div class="disease-cloud" aria-label="Situaciones clínicas incluidas">
+            <span class="pill">Resección intestinal</span>
+            <span class="pill">Cirugía bariátrica</span>
+            <span class="pill">Enfermedad de Crohn</span>
+            <span class="pill">Fístulas intestinales</span>
+            <span class="pill">Dismotilidad</span>
+            <span class="pill">Enfermedad celíaca</span>
+            <span class="pill">Isquemia mesentérica</span>
+            <span class="pill">Insuficiencia pancreática</span>
+            <span class="pill">Cáncer digestivo</span>
+          </div>
+          <div class="mini-warning">
+            La presencia de un único síntoma puede ser suficiente para activar el cribado si
+            cumple el umbral clínico de intensidad y duración; no es obligatorio esperar a una combinación compleja.
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-toolbar">
+            <h3 id="chartTitle">Síntomas que activan el cribado</h3>
+            <div class="segment" role="tablist" aria-label="Cambiar visualización">
+              <button type="button" role="tab" aria-selected="true" data-chart="screening">Cribado</button>
+              <button type="button" role="tab" aria-selected="false" data-chart="oligomeric">Fórmula oligomérica</button>
+            </div>
+          </div>
+          <div class="bars" id="bars" aria-live="polite"></div>
+          <p class="chart-foot" id="chartFoot">
+            Porcentaje de especialistas que señaló cada síntoma como motivo para iniciar el cribado.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="algoritmo">
+      <header class="section-heading">
+        <p class="kicker">02 · La propuesta</p>
+        <h2>Un recorrido en tres etapas, diseñado para la práctica diaria</h2>
+        <p>
+          Seleccione cada pestaña para recorrer el flujo completo: cuándo sospechar,
+          cómo confirmar malnutrición y qué soporte nutricional considerar.
+        </p>
+      </header>
+
+      <div class="algorithm-shell">
+        <div class="tabs" role="tablist" aria-label="Etapas del algoritmo">
+          <button class="tab" id="tab-screen" role="tab" aria-selected="true" aria-controls="panel-screen" data-tab="screen">
+            <span>Etapa 1</span>Cribado
+          </button>
+          <button class="tab" id="tab-diagnosis" role="tab" aria-selected="false" aria-controls="panel-diagnosis" data-tab="diagnosis">
+            <span>Etapa 2</span>Diagnóstico
+          </button>
+          <button class="tab" id="tab-treatment" role="tab" aria-selected="false" aria-controls="panel-treatment" data-tab="treatment">
+            <span>Etapa 3</span>Tratamiento
+          </button>
+        </div>
+
+        <div class="tab-panel active" id="panel-screen" role="tabpanel" aria-labelledby="tab-screen">
+          <div class="algorithm-grid">
+            <aside class="stage-intro">
+              <span class="stage-no">1</span>
+              <h3>Detectar riesgo</h3>
+              <p>
+                Combinar antecedentes de riesgo con síntomas gastrointestinales relevantes.
+                Un resultado negativo no cierra el proceso: se propone reevaluar a los tres meses.
+              </p>
+            </aside>
+            <div class="stage-list">
+              <article class="logic-card" data-number="A">
+                <strong>Identificar antecedentes</strong>
+                <p>Resecciones, enfermedad mucosa, dismotilidad, fístulas, alteraciones vasculares o insuficiencia pancreática.</p>
+              </article>
+              <article class="logic-card" data-number="B">
+                <strong>Valorar síntomas</strong>
+                <p>Diarrea, distensión abdominal, dolor o aumento del residuo gástrico; el vómito también es relevante durante el seguimiento.</p>
+              </article>
+              <article class="logic-card warning" data-number="C">
+                <strong>Aplicar el umbral clínico</strong>
+                <p>El panel situó el punto de activación en síntomas al menos moderados y persistentes durante más de tres semanas.</p>
+              </article>
+              <article class="logic-card" data-number="D">
+                <strong>Si el cribado es negativo</strong>
+                <p>La opción mayoritaria fue repetir la valoración a los tres meses.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="panel-diagnosis" role="tabpanel" aria-labelledby="tab-diagnosis">
+          <div class="algorithm-grid">
+            <aside class="stage-intro">
+              <span class="stage-no">2</span>
+              <h3>Confirmar malnutrición</h3>
+              <p>
+                El algoritmo utiliza GLIM como marco diagnóstico: la presencia simultánea
+                de al menos un criterio fenotípico y uno etiológico.
+              </p>
+            </aside>
+            <div class="stage-list">
+              <article class="logic-card" data-number="1">
+                <strong>Criterios fenotípicos</strong>
+                <p>Pérdida de peso involuntaria, bajo índice de masa corporal o reducción de masa muscular.</p>
+              </article>
+              <article class="logic-card" data-number="2">
+                <strong>Criterios etiológicos</strong>
+                <p>Disminución de ingesta o asimilación y/o inflamación o carga de enfermedad.</p>
+              </article>
+              <article class="logic-card warning" data-number="3">
+                <strong>Regla diagnóstica</strong>
+                <p>GLIM positivo = ≥1 criterio fenotípico + ≥1 criterio etiológico.</p>
+              </article>
+              <article class="logic-card" data-number="4">
+                <strong>Si GLIM es negativo</strong>
+                <p>Continuar vigilancia y repetir la evaluación a los tres meses según el flujo propuesto.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="panel-treatment" role="tabpanel" aria-labelledby="tab-treatment">
+          <div class="algorithm-grid">
+            <aside class="stage-intro">
+              <span class="stage-no">3</span>
+              <h3>Adaptar la fórmula</h3>
+              <p>
+                La elección depende de la gravedad de los síntomas y de la tolerancia previa
+                a fórmulas poliméricas, con reevaluación precoz y transición individualizada.
+              </p>
+            </aside>
+            <div class="stage-list">
+              <article class="logic-card" data-number="1">
+                <strong>Síntomas leves o buena tolerancia</strong>
+                <p>Mantener o iniciar una fórmula polimérica cuando resulte bien tolerada.</p>
+              </article>
+              <article class="logic-card warning" data-number="2">
+                <strong>Síntomas moderados/graves o mala tolerancia</strong>
+                <p>Considerar una fórmula oligomérica como tratamiento inicial.</p>
+              </article>
+              <article class="logic-card" data-number="3">
+                <strong>Control precoz</strong>
+                <p>Valorar tolerancia a los 3–5 días y evolución sintomática aproximadamente al mes.</p>
+              </article>
+              <article class="logic-card" data-number="4">
+                <strong>Transición a polimérica</strong>
+                <p>La media propuesta fue 6,24 ± 4,45 semanas de mejoría, pero la decisión debe basarse en mejoría sostenida, no en un plazo rígido.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulador">
+      <header class="section-heading">
+        <p class="kicker">03 · Interacción</p>
+        <h2>Simulador educativo de la lógica del algoritmo</h2>
+        <p>
+          Seleccione un escenario para visualizar la ruta sugerida por el artículo.
+          Es una representación didáctica, no una herramienta de prescripción.
+        </p>
+      </header>
+
+      <div class="decision-layout">
+        <form class="decision-card" id="decisionForm">
+          <h3>Escenario clínico</h3>
+          <p>Las opciones actualizan la recomendación de forma inmediata.</p>
+
+          <fieldset class="field">
+            <legend class="sr-only">Resultado del cribado</legend>
+            <span>1. ¿El cribado nutricional es positivo?</span>
+            <div class="choices">
+              <span class="choice">
+                <input type="radio" id="screenYes" name="screen" value="yes" checked />
+                <label for="screenYes">Sí</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="screenNo" name="screen" value="no" />
+                <label for="screenNo">No</label>
+              </span>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend class="sr-only">Resultado GLIM</legend>
+            <span>2. ¿Cumple criterios GLIM?</span>
+            <div class="choices">
+              <span class="choice">
+                <input type="radio" id="glimYes" name="glim" value="yes" checked />
+                <label for="glimYes">Sí</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="glimNo" name="glim" value="no" />
+                <label for="glimNo">No</label>
+              </span>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend class="sr-only">Gravedad de síntomas</legend>
+            <span>3. Gravedad de los síntomas</span>
+            <div class="choices">
+              <span class="choice">
+                <input type="radio" id="severityMild" name="severity" value="mild" />
+                <label for="severityMild">Leves</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="severityModerate" name="severity" value="moderate" checked />
+                <label for="severityModerate">Moderados</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="severitySevere" name="severity" value="severe" />
+                <label for="severitySevere">Graves</label>
+              </span>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend class="sr-only">Tolerancia a fórmula polimérica</legend>
+            <span>4. Tolerancia previa a fórmula polimérica</span>
+            <div class="choices">
+              <span class="choice">
+                <input type="radio" id="toleranceGood" name="tolerance" value="good" />
+                <label for="toleranceGood">Buena</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="tolerancePoor" name="tolerance" value="poor" checked />
+                <label for="tolerancePoor">Mala</label>
+              </span>
+              <span class="choice">
+                <input type="radio" id="toleranceUnknown" name="tolerance" value="unknown" />
+                <label for="toleranceUnknown">No conocida</label>
+              </span>
+            </div>
+          </fieldset>
+        </form>
+
+        <article class="result-card" id="decisionResult" aria-live="polite">
+          <p class="result-label">Ruta orientativa</p>
+          <h3 id="resultTitle">Considerar fórmula oligomérica</h3>
+          <p id="resultText">
+            El escenario combina malnutrición confirmada con síntomas moderados o graves
+            y/o mala tolerancia a la fórmula polimérica.
+          </p>
+          <div class="result-steps" id="resultSteps"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="metodo">
+      <header class="section-heading">
+        <p class="kicker">04 · Cómo se construyó</p>
+        <h2>Del consenso teórico a una validación práctica inicial</h2>
+        <p>
+          La fortaleza principal no es un ensayo de eficacia, sino la traducción estructurada
+          de experiencia multidisciplinar a un flujo clínico operativo.
+        </p>
+      </header>
+
+      <div class="methods">
+        <article class="method-card">
+          <span class="method-icon">β</span>
+          <h3>Algoritmo preliminar</h3>
+          <p>
+            El grupo coordinador partió de un consenso Delphi previo sobre el papel de las fórmulas oligoméricas.
+          </p>
+        </article>
+        <article class="method-card">
+          <span class="method-icon">5×</span>
+          <h3>Aplicación a casos reales</h3>
+          <p>
+            Cada participante utilizó la versión preliminar en cinco casos antes de responder el cuestionario.
+            No se recopilaron datos clínicos personales de pacientes.
+          </p>
+        </article>
+        <article class="method-card">
+          <span class="method-icon">α</span>
+          <h3>Versión final</h3>
+          <p>
+            Las respuestas de 173 especialistas permitieron ajustar umbrales, seguimiento y criterios de transición.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="evidencia">
+      <header class="section-heading">
+        <p class="kicker">05 · Implicaciones y cautelas</p>
+        <h2>Una herramienta útil para estandarizar, todavía pendiente de demostrar impacto clínico</h2>
+        <p>
+          El artículo presenta una base pragmática para decidir de forma más homogénea,
+          pero diferencia con claridad la validación operativa de la validación de eficacia.
+        </p>
+      </header>
+
+      <div class="evidence-grid">
+        <div class="implication-list">
+          <article class="implication">
+            <strong>Detección más precoz</strong>
+            <p>El flujo puede reducir retrasos al permitir que un solo síntoma clínicamente relevante active el cribado.</p>
+          </article>
+          <article class="implication">
+            <strong>Decisiones más consistentes</strong>
+            <p>Integra GLIM y criterios de tolerancia en una secuencia fácil de aplicar por distintas especialidades.</p>
+          </article>
+          <article class="implication">
+            <strong>Nutrición más personalizada</strong>
+            <p>La fórmula se adapta a gravedad y tolerancia, y la transición depende de mejoría sostenida.</p>
+          </article>
+        </div>
+
+        <div class="accordion" aria-label="Fortalezas, limitaciones y transparencia">
+          <article class="accordion-item">
+            <button class="accordion-button" type="button" aria-expanded="true">
+              <span>Fortalezas</span><span>+</span>
+            </button>
+            <div class="accordion-panel open">
+              Panel amplio y multidisciplinar; aplicación práctica previa al cuestionario;
+              estructura secuencial; criterios clínicos claros y alineación con GLIM y principios ESPEN.
+            </div>
+          </article>
+          <article class="accordion-item">
+            <button class="accordion-button" type="button" aria-expanded="false">
+              <span>Limitaciones</span><span>+</span>
+            </button>
+            <div class="accordion-panel">
+              No existe aún validación prospectiva, externa y multicéntrica; no se evaluaron
+              desenlaces clínicos duros; el diseño basado en consenso puede incorporar sesgos de opinión.
+            </div>
+          </article>
+          <article class="accordion-item">
+            <button class="accordion-button" type="button" aria-expanded="false">
+              <span>Próximos pasos</span><span>+</span>
+            </button>
+            <div class="accordion-panel">
+              Evaluar estado nutricional, tolerancia, adherencia, recursos sanitarios, calidad de vida,
+              resultados a medio y largo plazo, coste-efectividad y adaptación a etiologías específicas.
+            </div>
+          </article>
+          <article class="accordion-item">
+            <button class="accordion-button" type="button" aria-expanded="false">
+              <span>Financiación y conflictos</span><span>+</span>
+            </button>
+            <div class="accordion-panel">
+              El proyecto fue financiado por Abbott Laboratories. El artículo declara que la fuente
+              de financiación no participó en diseño, análisis, interpretación ni decisión de publicación.
+              También se detallan relaciones profesionales de varios autores con compañías de nutrición clínica.
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="cita">
+      <header class="section-heading">
+        <p class="kicker">06 · Referencia</p>
+        <h2>Cómo citar el artículo en formato APA 7</h2>
+      </header>
+
+      <article class="citation-card">
+        <h3>Referencia completa</h3>
+        <div class="citation-box" id="apaCitation">
+          Sidahi Serrano, M., Diéguez Castillo, C., Martín Aguilar, A., &amp; De Luis Román, D. (2026).
+          Development and validation of a practical nutritional management algorithm in malabsorption.
+          <em>Nutrients, 18</em>(11), 1750. https://doi.org/10.3390/nu18111750
+        </div>
+        <div class="citation-actions">
+          <button class="button button-primary" type="button" id="copyCitation">Copiar cita APA</button>
+          <button class="button button-secondary" type="button" id="copyDoi">Copiar DOI</button>
+        </div>
+        <p class="copy-status" id="copyStatus" aria-live="polite"></p>
+      </article>
+    </section>
+  </main>
+
+  <section class="closing">
+    <h2>La aportación central: convertir incertidumbre clínica en una secuencia explícita de decisiones</h2>
+    <p>
+      El algoritmo ofrece una ruta común para cribado, diagnóstico y soporte nutricional.
+      Su valor actual es organizativo y clínico-práctico; su efecto sobre resultados de salud
+      debe confirmarse en estudios prospectivos multicéntricos.
+    </p>
+  </section>
+
+  <footer>
+    Landing page educativa basada en el artículo publicado en <em>Nutrients</em> (2026).
+    Diseño y visualizaciones recreados para facilitar su comprensión.
+  </footer>
+
+  <script>
+    "use strict";
+
+    const chartData = {
+      screening: {
+        title: "Síntomas que activan el cribado",
+        foot: "Porcentaje de especialistas que señaló cada síntoma como motivo para iniciar el cribado.",
+        values: [
+          ["Diarrea inespecífica", 88.69],
+          ["Distensión abdominal", 72.62],
+          ["Dolor abdominal", 65.48],
+          ["Residuo gástrico elevado", 45.83]
+        ]
+      },
+      oligomeric: {
+        title: "Síntomas que orientan a fórmula oligomérica",
+        foot: "Porcentaje de menciones como síntoma que guía el inicio de suplementos oligoméricos.",
+        values: [
+          ["Diarrea inespecífica", 31.1],
+          ["Dolor abdominal", 20.1],
+          ["Distensión abdominal", 20.1],
+          ["Vómitos", 15.4],
+          ["Residuo gástrico elevado", 13.3]
+        ]
+      }
+    };
+
+    const bars = document.getElementById("bars");
+    const chartTitle = document.getElementById("chartTitle");
+    const chartFoot = document.getElementById("chartFoot");
+
+    function renderChart(key) {
+      const data = chartData[key];
+      chartTitle.textContent = data.title;
+      chartFoot.textContent = data.foot;
+      bars.innerHTML = "";
+
+      const max = Math.max(...data.values.map(item => item[1]));
+
+      data.values.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <span class="bar-label">${label}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:0"></span></span>
+          <span class="bar-value">${String(value).replace(".", ",")}%</span>
+        `;
+        bars.appendChild(row);
+
+        requestAnimationFrame(() => {
+          row.querySelector(".bar-fill").style.width = `${(value / max) * 100}%`;
+        });
+      });
+    }
+
+    document.querySelectorAll("[data-chart]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-chart]").forEach(item => {
+          item.setAttribute("aria-selected", String(item === button));
+        });
+        renderChart(button.dataset.chart);
+      });
+    });
+
+    renderChart("screening");
+
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(item => item.setAttribute("aria-selected", String(item === tab)));
+        document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.remove("active"));
+        document.getElementById(`panel-${tab.dataset.tab}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".accordion-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        button.setAttribute("aria-expanded", String(!expanded));
+        button.nextElementSibling.classList.toggle("open", !expanded);
+      });
+    });
+
+    const decisionForm = document.getElementById("decisionForm");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+    const resultSteps = document.getElementById("resultSteps");
+
+    function getFormValue(name) {
+      return decisionForm.querySelector(`input[name="${name}"]:checked`)?.value;
+    }
+
+    function setResult(title, text, steps) {
+      resultTitle.textContent = title;
+      resultText.textContent = text;
+      resultSteps.innerHTML = steps
+        .map((step, index) => `<div class="result-step"><b>${index + 1}</b><span>${step}</span></div>`)
+        .join("");
+    }
+
+    function updateDecision() {
+      const screen = getFormValue("screen");
+      const glim = getFormValue("glim");
+      const severity = getFormValue("severity");
+      const tolerance = getFormValue("tolerance");
+
+      if (screen === "no") {
+        setResult(
+          "Repetir la evaluación en 3 meses",
+          "El algoritmo propone mantener vigilancia cuando el cribado no identifica riesgo actual.",
+          [
+            "Revisar cambios en síntomas, ingesta, peso y situación clínica.",
+            "Repetir el cribado nutricional aproximadamente a los tres meses.",
+            "Adelantar la revisión si aparecen síntomas persistentes o deterioro clínico."
+          ]
+        );
+        return;
+      }
+
+      if (glim === "no") {
+        setResult(
+          "Vigilancia sin diagnóstico GLIM",
+          "Existe una señal de riesgo, pero no se cumplen los criterios diagnósticos de malnutrición.",
+          [
+            "Mantener seguimiento clínico y nutricional.",
+            "Reevaluar criterios fenotípicos y etiológicos.",
+            "Repetir la valoración aproximadamente a los tres meses."
+          ]
+        );
+        return;
+      }
+
+      const needsOligomeric =
+        severity === "moderate" ||
+        severity === "severe" ||
+        tolerance === "poor";
+
+      if (needsOligomeric) {
+        setResult(
+          "Considerar fórmula oligomérica",
+          "El escenario combina malnutrición confirmada con síntomas moderados o graves y/o mala tolerancia a la fórmula polimérica.",
+          [
+            "Iniciar soporte oligomérico si está indicado y no existen contraindicaciones.",
+            "Valorar tolerancia de forma precoz, a los 3–5 días.",
+            "Revisar la mejoría sintomática aproximadamente al mes.",
+            "Plantear transición a polimérica solo tras mejoría clínica sostenida."
+          ]
+        );
+      } else {
+        setResult(
+          "Mantener o iniciar fórmula polimérica",
+          "Con síntomas leves y buena tolerancia previa, el algoritmo prioriza la fórmula polimérica.",
+          [
+            "Mantener o iniciar fórmula polimérica según necesidades nutricionales.",
+            "Valorar tolerancia a los 3–5 días.",
+            "Revisar síntomas, ingesta y evolución del estado nutricional.",
+            "Escalar a oligomérica si la tolerancia empeora o los síntomas progresan."
+          ]
+        );
+      }
+    }
+
+    decisionForm.addEventListener("change", updateDecision);
+    updateDecision();
+
+    const apaText =
+      "Sidahi Serrano, M., Diéguez Castillo, C., Martín Aguilar, A., & De Luis Román, D. (2026). " +
+      "Development and validation of a practical nutritional management algorithm in malabsorption. " +
+      "Nutrients, 18(11), 1750. https://doi.org/10.3390/nu18111750";
+
+    const copyStatus = document.getElementById("copyStatus");
+
+    async function copyText(text, message) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copyStatus.textContent = message;
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        copyStatus.textContent = message;
+      }
+      window.setTimeout(() => { copyStatus.textContent = ""; }, 2400);
+    }
+
+    document.getElementById("copyCitation").addEventListener("click", () => {
+      copyText(apaText, "Cita APA copiada.");
+    });
+
+    document.getElementById("copyDoi").addEventListener("click", () => {
+      copyText("https://doi.org/10.3390/nu18111750", "DOI copiado.");
+    });
+
+    document.getElementById("printButton").addEventListener("click", () => window.print());
+
+    const progressBar = document.getElementById("progressBar");
+    function updateProgress() {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+      progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    updateProgress();
+  </script>
+</body>
+</html>
+"""
+
+html_path = out_dir / "index.html"
+html_path.write_text(html, encoding="utf-8")
+
+zip_path = Path("/mnt/data/landing_malabsorcion_interactiva.zip")
+with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+    archive.write(html_path, arcname="index.html")
+
+# Basic integrity checks
+checks = {
+    "doctype": "<!DOCTYPE html>" in html,
+    "responsive viewport": 'name="viewport"' in html,
+    "interactive chart": 'data-chart="screening"' in html,
+    "interactive algorithm": 'id="decisionForm"' in html,
+    "APA citation": "Sidahi Serrano, M." in html,
+    "closing html": html.strip().endswith("</html>")
+}
+
+print(f"Creado: {html_path} ({html_path.stat().st_size:,} bytes)")
+print(f"ZIP: {zip_path} ({zip_path.stat().st_size:,} bytes)")
+print("Comprobaciones:")
+for key, value in checks.items():
+    print(f"- {key}: {'OK' if value else 'ERROR'}")
